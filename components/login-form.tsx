@@ -16,8 +16,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { createClient } from "@/lib/supabase/client"
 
 const loginSchema = z.object({
   email: z.string().email('Por favor, insira um email válido.'),
@@ -30,9 +30,9 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const {
     register,
@@ -40,23 +40,32 @@ export function LoginForm({
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-  });
+  })
 
   const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true)
+    setError(null)
     
     try {
-      console.log('Login attempt:', data);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      // alert('Login simulado com sucesso! Redirecionando...'); 
-      router.push('/dashboard'); 
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      })
+
+      if (error) {
+        setError(error.message || "Falha ao entrar.")
+        return
+      }
+
+      router.replace("/dashboard")
+      router.refresh()
     } catch (err) {
-        setError('Falha ao entrar.');
+      setError('Falha ao entrar.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
