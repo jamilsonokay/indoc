@@ -99,10 +99,6 @@ export function NavUser({
                 Conta
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <IconCreditCard />
-                Faturação
-              </DropdownMenuItem>
-              <DropdownMenuItem>
                 <IconNotification />
                 Notificações
               </DropdownMenuItem>

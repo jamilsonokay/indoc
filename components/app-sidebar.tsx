@@ -156,11 +156,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   React.useEffect(() => {
     const supabase = createClient()
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.error("Erro ao buscar usuário:", error)
+        return
+      }
+
       if (user) {
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+        // Tenta buscar perfil, mas não falha se não existir
+        let profile = null
+        try {
+          const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+          profile = data
+        } catch (e) {
+          console.log("Tabela profiles não encontrada ou erro ao buscar perfil", e)
+        }
+
         setUser({
-          name: profile?.full_name || user.user_metadata?.full_name || "User",
+          name: profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || "Usuário",
           email: user.email || "",
           avatar: user.user_metadata?.avatar_url || "",
         })
