@@ -173,11 +173,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           console.log("Tabela profiles não encontrada ou erro ao buscar perfil", e)
         }
 
-        setUser({
-          name: profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || "Usuário",
-          email: user.email || "",
-          avatar: user.user_metadata?.avatar_url || "",
-        })
+        // Formata o nome de fallback (ex: "admin" -> "Admin")
+          const emailName = user.email?.split('@')[0]
+          const formattedEmailName = emailName ? emailName.charAt(0).toUpperCase() + emailName.slice(1) : "Usuário"
+
+          setUser({
+            name: profile?.full_name || user.user_metadata?.full_name || formattedEmailName,
+            email: user.email || "",
+            avatar: user.user_metadata?.avatar_url || "",
+          })
       }
     }
     getUser()
