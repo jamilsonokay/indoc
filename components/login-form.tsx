@@ -17,6 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const loginSchema = z.object({
   email: z.string().email('Por favor, insira um email válido.'),
@@ -29,6 +30,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,7 +49,8 @@ export function LoginForm({
     try {
       console.log('Login attempt:', data);
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      alert('Login simulado com sucesso! Redirecionando...');
+      // alert('Login simulado com sucesso! Redirecionando...'); 
+      router.push('/dashboard'); 
     } catch (err) {
         setError('Falha ao entrar.');
     } finally {
