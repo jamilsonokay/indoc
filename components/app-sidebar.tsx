@@ -147,50 +147,72 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [user, setUser] = React.useState({
-    name: "User",
-    email: "user@example.com",
-    avatar: "",
-  })
+  const [user, setUser] = React.useState<{
+    name: string;
+    email: string;
+    avatar: string;
+  } | null>(null)
 
   React.useEffect(() => {
     const supabase = createClient()
-    const getUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      
-      if (error) {
-        console.error("Erro ao buscar usuário:", error)
-        return
+    
+    // Função para buscar e formatar dados do usuário
+    const fetchUserData = async (authUser: any) => {
+      if (!authUser) return
+
+      let profile = null
+      try {
+        const { data } = await supabase.from('profiles').select('*').eq('id', authUser.id).single()
+        profile = data
+      } catch (e) {
+        console.log("Tabela profiles não encontrada ou erro ao buscar perfil", e)
       }
 
+      // Formata o nome de fallback (ex: "admin" -> "Admin")
+      const emailName = authUser.email?.split('@')[0]
+      const formattedEmailName = emailName ? emailName.charAt(0).toUpperCase() + emailName.slice(1) : "Usuário"
+
+      setUser({
+        name: profile?.full_name || authUser.user_metadata?.full_name || formattedEmailName,
+        email: authUser.email || "",
+        avatar: authUser.user_metadata?.avatar_url || "",
+      })
+    }
+
+    // Busca inicial
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        // Tenta buscar perfil, mas não falha se não existir
-        let profile = null
-        try {
-          const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-          profile = data
-        } catch (e) {
-          console.log("Tabela profiles não encontrada ou erro ao buscar perfil", e)
-        }
-
-        // Formata o nome de fallback (ex: "admin" -> "Admin")
-          const emailName = user.email?.split('@')[0]
-          const formattedEmailName = emailName ? emailName.charAt(0).toUpperCase() + emailName.slice(1) : "Usuário"
-
-          setUser({
-            name: profile?.full_name || user.user_metadata?.full_name || formattedEmailName,
-            email: user.email || "",
-            avatar: user.user_metadata?.avatar_url || "",
-          })
+        await fetchUserData(user)
       }
     }
     getUser()
+
+    // Listener para mudanças na autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await fetchUserData(session.user)
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
+
+  // Dados padrão para exibir enquanto carrega ou se não tiver usuário (fallback seguro)
+  const displayUser = user || {
+    name: "Carregando...",
+    email: "",
+    avatar: "",
+  }
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-        <NavUser user={user} />
+        <NavUser user={displayUser} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
