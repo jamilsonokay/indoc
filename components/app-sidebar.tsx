@@ -42,54 +42,54 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
+      title: "Ciclo de Vida",
       url: "#",
       icon: IconListDetails,
     },
     {
-      title: "Analytics",
+      title: "Análises",
       url: "#",
       icon: IconChartBar,
     },
     {
-      title: "Projects",
+      title: "Projetos",
       url: "#",
       icon: IconFolder,
     },
     {
-      title: "Team",
+      title: "Equipe",
       url: "#",
       icon: IconUsers,
     },
   ],
   navClouds: [
     {
-      title: "Capture",
+      title: "Captura",
       icon: IconCamera,
       isActive: true,
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Propostas Ativas",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Arquivados",
           url: "#",
         },
       ],
     },
     {
-      title: "Proposal",
+      title: "Propostas",
       icon: IconFileDescription,
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Propostas Ativas",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Arquivados",
           url: "#",
         },
       ],
@@ -100,11 +100,11 @@ const data = {
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Propostas Ativas",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Arquivados",
           url: "#",
         },
       ],
@@ -112,34 +112,34 @@ const data = {
   ],
   navSecondary: [
     {
-      title: "Settings",
+      title: "Configurações",
       url: "#",
       icon: IconSettings,
     },
     {
-      title: "Get Help",
+      title: "Ajuda",
       url: "#",
       icon: IconHelp,
     },
     {
-      title: "Search",
+      title: "Buscar",
       url: "#",
       icon: IconSearch,
     },
   ],
   documents: [
     {
-      name: "Data Library",
+      name: "Biblioteca de Dados",
       url: "#",
       icon: IconDatabase,
     },
     {
-      name: "Reports",
+      name: "Relatórios",
       url: "#",
       icon: IconReport,
     },
     {
-      name: "Word Assistant",
+      name: "Assistente Word",
       url: "#",
       icon: IconFileWord,
     },
