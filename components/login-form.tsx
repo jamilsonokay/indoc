@@ -72,7 +72,7 @@ export function LoginForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="exemplo@inpharma.cv"
                   disabled={isLoading}
                   className={cn(errors.email && "border-red-500 focus-visible:ring-red-500")}
                   {...register('email')}
