@@ -7,10 +7,35 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { createClient } from "@/lib/supabase/server"
 
 import data from "./data.json"
 
-export default function Page() {
+export default async function Page() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let userData = undefined
+
+  if (user) {
+    let profile = null
+    try {
+      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      profile = data
+    } catch (e) {
+      console.error("Erro ao buscar perfil no server-side", e)
+    }
+
+    const emailName = user.email?.split('@')[0]
+    const formattedEmailName = emailName ? emailName.charAt(0).toUpperCase() + emailName.slice(1) : "Usuário"
+
+    userData = {
+      name: profile?.full_name || user.user_metadata?.full_name || formattedEmailName,
+      email: user.email || "",
+      avatar: user.user_metadata?.avatar_url || "",
+    }
+  }
+
   return (
     <SidebarProvider
       style={
@@ -20,7 +45,7 @@ export default function Page() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+      <AppSidebar variant="inset" user={userData} />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">

@@ -146,20 +146,36 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  user: initialUser,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & {
+  user?: {
+    name: string
+    email: string
+    avatar: string
+  }
+}) {
   const [user, setUser] = React.useState<{
     name: string;
     email: string;
     avatar: string;
-  } | null>(null)
+  } | null>(initialUser || null)
 
   React.useEffect(() => {
+    // Se já temos usuário inicial, não precisamos buscar de novo imediatamente,
+    // mas ainda queremos ouvir mudanças de estado.
+    
     const supabase = createClient()
     
     // Função para buscar e formatar dados do usuário
     const fetchUserData = async (authUser: any) => {
       if (!authUser) return
 
+      // Se o usuário atual já for igual ao authUser (verificação simples por email),
+      // e já tivermos nome, talvez não precise buscar perfil de novo se já veio do server.
+      // Mas para garantir consistência, vamos buscar.
+      
       let profile = null
       try {
         const { data } = await supabase.from('profiles').select('*').eq('id', authUser.id).single()
@@ -179,18 +195,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       })
     }
 
-    // Busca inicial
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await fetchUserData(user)
+    // Busca inicial apenas se não tiver usuário inicial
+    if (!initialUser) {
+      const getUser = async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          await fetchUserData(user)
+        }
       }
+      getUser()
     }
-    getUser()
 
     // Listener para mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
+        // Só atualiza se for diferente do atual (opcional, mas bom para evitar renders)
         await fetchUserData(session.user)
       } else if (event === 'SIGNED_OUT') {
         setUser(null)
@@ -200,7 +219,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [initialUser])
 
   // Dados padrão para exibir enquanto carrega ou se não tiver usuário (fallback seguro)
   const displayUser = user || {
