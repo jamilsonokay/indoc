@@ -43,6 +43,7 @@ export default async function Page() {
     name: profile?.full_name || user.user_metadata?.full_name || formattedEmailName,
     email: user.email || "",
     avatar: user.user_metadata?.avatar_url || "",
+    role: profile?.role || "user",
   }
 
   return (

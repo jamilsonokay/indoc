@@ -4,12 +4,16 @@ import * as React from "react"
 import {
   IconBuildingFactory,
   IconChartBar,
+  IconCheckbox,
+  IconCloudUpload,
   IconDashboard,
+  IconDatabase,
   IconFiles,
   IconHelp,
   IconInnerShadowTop,
   IconSearch,
   IconSettings,
+  IconShieldLock,
   IconStar,
   IconTrash,
   IconUsers,
@@ -29,79 +33,97 @@ import {
 } from "@/components/ui/sidebar"
 import { createClient } from "@/lib/supabase/client"
 
-const data = {
-  navMain: [
+// Navigation data configuration
+const getNavData = (role?: string) => {
+  const isAdmin = role === 'admin';
+
+  const navMain = [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
-      title: "Meus Documentos",
-      url: "#",
+      title: "Documentos",
+      url: "/documents",
       icon: IconFiles,
-    },
-    {
-      title: "Departamentos",
-      url: "#",
-      icon: IconBuildingFactory,
       items: [
         {
-          title: "Inlab",
-          url: "#",
+          title: "Todos os Documentos",
+          url: "/documents",
         },
         {
-          title: "Produção",
-          url: "#",
+          title: "Por Departamento",
+          url: "/documents?filter=department",
         },
         {
-          title: "Logística",
-          url: "#",
-        },
-        {
-          title: "Administração",
-          url: "#",
+          title: "Por Tipo",
+          url: "/documents?filter=type",
         },
       ],
     },
     {
-      title: "Relatórios",
-      url: "#",
+      title: "Upload / Nova Versão",
+      url: "/documents/upload",
+      icon: IconCloudUpload,
+    },
+    {
+      title: "Minhas Confirmações",
+      url: "/acknowledgments",
+      icon: IconCheckbox,
+    },
+    {
+      title: "Relatórios / Auditoria",
+      url: "/reports",
       icon: IconChartBar,
     },
-    {
-      title: "Favoritos",
-      url: "#",
-      icon: IconStar,
-    },
-    {
-      title: "Lixeira",
-      url: "#",
-      icon: IconTrash,
-    },
-  ],
-  navSecondary: [
+  ];
+
+  if (isAdmin) {
+    navMain.push({
+      title: "Administração",
+      url: "/admin",
+      icon: IconShieldLock,
+      items: [
+        {
+          title: "Utilizadores",
+          url: "/admin/users",
+        },
+        {
+          title: "Tipos Documentais",
+          url: "/admin/document-types",
+        },
+        {
+          title: "Departamentos",
+          url: "/admin/departments",
+        },
+        {
+          title: "Backup",
+          url: "/admin/backup",
+        },
+      ],
+    });
+  }
+
+  const navSecondary = [
     {
       title: "Configurações",
-      url: "#",
+      url: "/settings",
       icon: IconSettings,
     },
     {
-      title: "Usuários",
-      url: "#",
-      icon: IconUsers,
-    },
-    {
       title: "Ajuda",
-      url: "#",
+      url: "/help",
       icon: IconHelp,
     },
     {
       title: "Buscar",
-      url: "#",
+      url: "/search",
       icon: IconSearch,
     },
-  ],
+  ];
+
+  return { navMain, navSecondary };
 }
 
 export function AppSidebar({
@@ -112,13 +134,17 @@ export function AppSidebar({
     name: string
     email: string
     avatar: string
+    role?: string
   }
 }) {
   const [user, setUser] = React.useState<{
     name: string
     email: string
     avatar: string
+    role?: string
   } | null>(initialUser || null)
+
+  const [navData, setNavData] = React.useState(getNavData(initialUser?.role));
 
   React.useEffect(() => {
     const supabase = createClient()
@@ -132,7 +158,6 @@ export function AppSidebar({
         if (!error) {
            profile = data
         } else {
-           // Em caso de erro (ex: RLS), tenta pegar do metadata
            console.warn("Erro ao buscar perfil (Client):", error.message)
         }
       } catch (e) {
@@ -141,18 +166,18 @@ export function AppSidebar({
 
       const emailName = authUser.email?.split('@')[0]
       const formattedEmailName = emailName ? emailName.charAt(0).toUpperCase() + emailName.slice(1) : "Usuário"
-
-      // Prioridade:
-      // 1. Nome do Perfil (Tabela public.profiles)
-      // 2. Nome do Metadata (Auth)
-      // 3. Nome formatado do email
       const finalName = profile?.full_name || authUser.user_metadata?.full_name || formattedEmailName
+      const userRole = profile?.role || 'user';
 
       setUser({
         name: finalName,
         email: authUser.email || "",
         avatar: authUser.user_metadata?.avatar_url || "",
+        role: userRole,
       })
+      
+      // Update nav data based on fetched role
+      setNavData(getNavData(userRole));
     }
 
     if (!initialUser) {
@@ -162,9 +187,13 @@ export function AppSidebar({
           await fetchUserData(user)
         } else {
           setUser(null)
+          setNavData(getNavData());
         }
       }
       getUser()
+    } else {
+       // If initialUser is provided, ensure navData is up to date (though useState init handles it, this covers updates)
+       setNavData(getNavData(initialUser.role));
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -172,6 +201,7 @@ export function AppSidebar({
         await fetchUserData(session.user)
       } else if (event === 'SIGNED_OUT') {
         setUser(null)
+        setNavData(getNavData());
       }
     })
 
@@ -192,8 +222,8 @@ export function AppSidebar({
         <NavUser user={displayUser} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navData.navMain} />
+        <NavSecondary items={navData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
