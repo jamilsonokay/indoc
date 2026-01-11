@@ -53,12 +53,16 @@ export function LoginForm({
       
       let result;
       if (isRegistering) {
+        // Formata o nome baseado no email (antes do @)
+        const emailName = data.email.split('@')[0];
+        const formattedName = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+
         result = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
           options: {
             data: {
-              full_name: 'Usuário InDOC',
+              full_name: formattedName,
             },
           },
         })
