@@ -42,26 +42,52 @@ export function LoginForm({
     resolver: zodResolver(loginSchema),
   })
 
+  const [isRegistering, setIsRegistering] = useState(false)
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true)
     setError(null)
     
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      })
+      
+      let result;
+      if (isRegistering) {
+        result = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              full_name: 'Usuário InDOC',
+            },
+          },
+        })
+      } else {
+        result = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        })
+      }
+
+      const { error, data: authData } = result
 
       if (error) {
-        setError(error.message || "Falha ao entrar.")
+        setError(error.message || (isRegistering ? "Falha ao criar conta." : "Falha ao entrar."))
         return
+      }
+
+      // Se for registro, verificar se precisa confirmar email
+      if (isRegistering && authData.user && !authData.session) {
+         setError("Conta criada! Verifique seu email para confirmar (se necessário) ou tente fazer login.")
+         setIsRegistering(false) // Volta para login
+         return
       }
 
       router.replace("/dashboard")
       router.refresh()
     } catch (err) {
-      setError('Falha ao entrar.')
+      setError('Ocorreu um erro inesperado.')
+      console.error(err)
     } finally {
       setIsLoading(false)
     }
@@ -71,9 +97,11 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl text-blue-600">Login</CardTitle>
+          <CardTitle className="text-2xl text-blue-600">{isRegistering ? "Criar Conta" : "Login"}</CardTitle>
           <CardDescription>
-            Digite seu email abaixo para acessar sua conta
+            {isRegistering 
+              ? "Preencha os dados abaixo para se registrar" 
+              : "Digite seu email abaixo para acessar sua conta"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -125,14 +153,21 @@ export function LoginForm({
                 {isLoading && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Entrar
+                {isRegistering ? "Criar Conta" : "Entrar"}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
-              Não tem uma conta?{" "}
-              <a href="#" className="underline underline-offset-4">
-                Contate o admin
-              </a>
+              {isRegistering ? "Já tem uma conta? " : "Não tem uma conta? "}
+              <button 
+                type="button" 
+                onClick={() => {
+                  setIsRegistering(!isRegistering)
+                  setError(null)
+                }}
+                className="underline underline-offset-4"
+              >
+                {isRegistering ? "Faça login" : "Criar conta"}
+              </button>
             </div>
           </form>
         </CardContent>
