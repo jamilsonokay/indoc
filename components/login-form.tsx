@@ -81,8 +81,14 @@ export function LoginForm({
       }
 
       // Se for registro, verificar se precisa confirmar email
-      if (isRegistering && authData.user && !authData.session) {
-         setError("Conta criada! Verifique seu email para confirmar (se necessário) ou tente fazer login.")
+      if (isRegistering) {
+         if (authData.session) {
+            // Se logou automaticamente (por causa do trigger), faz logout para forçar login manual
+            await supabase.auth.signOut()
+         }
+         
+         setError("Conta criada com sucesso! Faça login para continuar.")
+         // Adiciona um pequeno delay visual ou apenas muda o estado
          setIsRegistering(false) // Volta para login
          return
       }
@@ -148,7 +154,7 @@ export function LoginForm({
               </div>
               
               {error && (
-                <div className="text-sm text-red-500 font-medium">
+                <div className={cn("text-sm font-medium", error.includes("sucesso") ? "text-green-600" : "text-red-500")}>
                   {error}
                 </div>
               )}
