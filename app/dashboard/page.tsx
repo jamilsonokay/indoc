@@ -22,10 +22,18 @@ export default async function Page() {
 
   let profile = null
   try {
-    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-    profile = data
+    // Tenta buscar o perfil, mas não falha se não conseguir (ex: erro de schema)
+    // O erro "Database error querying schema" acontece quando o cliente tenta acessar metadados que não tem permissão
+    // ou quando a tabela não existe. Como já validamos a tabela, pode ser um erro silencioso do postgrest-js.
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+    
+    if (error) {
+       console.error("Erro Supabase ao buscar perfil:", error.message, error.details)
+    } else {
+       profile = data
+    }
   } catch (e) {
-    console.error("Erro ao buscar perfil no server-side", e)
+    console.error("Erro genérico ao buscar perfil no server-side", e)
   }
 
   const emailName = user.email?.split('@')[0]

@@ -170,8 +170,12 @@ export function AppSidebar({
 
       let profile = null
       try {
-        const { data } = await supabase.from('profiles').select('*').eq('id', authUser.id).single()
-        profile = data
+        const { data, error } = await supabase.from('profiles').select('*').eq('id', authUser.id).single()
+        if (!error) {
+           profile = data
+        } else {
+           console.warn("Erro ao buscar perfil (Client):", error.message)
+        }
       } catch (e) {
         console.log("Tabela profiles não encontrada ou erro ao buscar perfil", e)
       }
