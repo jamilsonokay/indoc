@@ -6,12 +6,12 @@ import {
   IconChartBar,
   IconDashboard,
   IconFiles,
-  IconFolder,
   IconHelp,
   IconInnerShadowTop,
-  IconListCheck,
   IconSearch,
   IconSettings,
+  IconStar,
+  IconTrash,
   IconUsers,
 } from "@tabler/icons-react"
 
@@ -45,16 +45,39 @@ const data = {
       title: "Departamentos",
       url: "#",
       icon: IconBuildingFactory,
-    },
-    {
-      title: "Tarefas",
-      url: "#",
-      icon: IconListCheck,
+      items: [
+        {
+          title: "Inlab",
+          url: "#",
+        },
+        {
+          title: "Produção",
+          url: "#",
+        },
+        {
+          title: "Logística",
+          url: "#",
+        },
+        {
+          title: "Administração",
+          url: "#",
+        },
+      ],
     },
     {
       title: "Relatórios",
       url: "#",
       icon: IconChartBar,
+    },
+    {
+      title: "Favoritos",
+      url: "#",
+      icon: IconStar,
+    },
+    {
+      title: "Lixeira",
+      url: "#",
+      icon: IconTrash,
     },
   ],
   navSecondary: [
