@@ -2,24 +2,19 @@
 
 import * as React from "react"
 import {
-  IconCamera,
+  IconBuildingFactory,
   IconChartBar,
   IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
+  IconFiles,
   IconFolder,
   IconHelp,
   IconInnerShadowTop,
-  IconListDetails,
-  IconReport,
+  IconListCheck,
   IconSearch,
   IconSettings,
   IconUsers,
 } from "@tabler/icons-react"
 
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
@@ -42,72 +37,24 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Ciclo de Vida",
+      title: "Meus Documentos",
       url: "#",
-      icon: IconListDetails,
+      icon: IconFiles,
     },
     {
-      title: "Análises",
+      title: "Departamentos",
+      url: "#",
+      icon: IconBuildingFactory,
+    },
+    {
+      title: "Tarefas",
+      url: "#",
+      icon: IconListCheck,
+    },
+    {
+      title: "Relatórios",
       url: "#",
       icon: IconChartBar,
-    },
-    {
-      title: "Projetos",
-      url: "#",
-      icon: IconFolder,
-    },
-    {
-      title: "Equipe",
-      url: "#",
-      icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Captura",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Propostas Ativas",
-          url: "#",
-        },
-        {
-          title: "Arquivados",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Propostas",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Propostas Ativas",
-          url: "#",
-        },
-        {
-          title: "Arquivados",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Propostas Ativas",
-          url: "#",
-        },
-        {
-          title: "Arquivados",
-          url: "#",
-        },
-      ],
     },
   ],
   navSecondary: [
@@ -115,6 +62,11 @@ const data = {
       title: "Configurações",
       url: "#",
       icon: IconSettings,
+    },
+    {
+      title: "Usuários",
+      url: "#",
+      icon: IconUsers,
     },
     {
       title: "Ajuda",
@@ -125,23 +77,6 @@ const data = {
       title: "Buscar",
       url: "#",
       icon: IconSearch,
-    },
-  ],
-  documents: [
-    {
-      name: "Biblioteca de Dados",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Relatórios",
-      url: "#",
-      icon: IconReport,
-    },
-    {
-      name: "Assistente Word",
-      url: "#",
-      icon: IconFileWord,
     },
   ],
 }
@@ -174,6 +109,7 @@ export function AppSidebar({
         if (!error) {
            profile = data
         } else {
+           // Em caso de erro (ex: RLS), tenta pegar do metadata
            console.warn("Erro ao buscar perfil (Client):", error.message)
         }
       } catch (e) {
@@ -183,8 +119,14 @@ export function AppSidebar({
       const emailName = authUser.email?.split('@')[0]
       const formattedEmailName = emailName ? emailName.charAt(0).toUpperCase() + emailName.slice(1) : "Usuário"
 
+      // Prioridade:
+      // 1. Nome do Perfil (Tabela public.profiles)
+      // 2. Nome do Metadata (Auth)
+      // 3. Nome formatado do email
+      const finalName = profile?.full_name || authUser.user_metadata?.full_name || formattedEmailName
+
       setUser({
-        name: profile?.full_name || authUser.user_metadata?.full_name || formattedEmailName,
+        name: finalName,
         email: authUser.email || "",
         avatar: authUser.user_metadata?.avatar_url || "",
       })
@@ -228,7 +170,6 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
